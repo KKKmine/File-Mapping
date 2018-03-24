@@ -72,7 +72,9 @@ public:
 		if (len > BUF_SIZE) throw ER_SIZE_OUT_OF_RANGE;
 		*(BYTE*)pBuf = len;
 		CopyMemory((BYTE*)pBuf + 1, msg, len);
-		while (*(BYTE*)pBuf) {} // Block process until msg is null
+		while (*(BYTE*)pBuf) { // Block process until msg size = 0
+			Sleep(10);
+		}
 	}
 
 	// Block process until recv success
@@ -82,7 +84,9 @@ public:
 	int RecvMsg(void* msg, size_t len) {
 		if (hMapFile == NULL) throw ER_CREATE_MAPPING_FAIL;
 		if (pBuf == NULL) throw ER_ACCESS_MAPPING_FAIL;
-		while (!*(BYTE*)pBuf) {} // Block process until msg is not null
+		while (!*(BYTE*)pBuf) {  // Block process until msg size > 0
+			Sleep(10);
+		}
 		if (*(BYTE*)pBuf > len) throw ER_SIZE_NOT_ENOUGH;
 		CopyMemory(msg, (BYTE*)pBuf + 1, *(BYTE*)pBuf);
 		int get_size = *(BYTE*)pBuf;
