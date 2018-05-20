@@ -3,17 +3,17 @@
 
 class FileMapping {
 private:
-	const int BUF_SIZE = 256;
+	const size_t BUF_SIZE = (1 << (sizeof(short) * 8)) - 1;
 	HANDLE hMapFile = NULL;
 	LPVOID pBuf = NULL;
 
 public:
 	enum {
-		ER_NO_ERROR,            // ¨S¦³¿ù»~
-		ER_CREATE_MAPPING_FAIL, // CreateFileMapping ¥¢±Ñ
-		ER_ACCESS_MAPPING_FAIL, // MapViewOfFile ¥¢±Ñ
-		ER_SIZE_OUT_OF_RANGE,   // SendMsg len¶W¹LBUF_SIZE(256B)
-		ER_SIZE_NOT_ENOUGH      // RecvMsg len¤£°÷±µ¦¬§¹¾ã¸ê®Æ
+		ER_NO_ERROR,            // æ²’æœ‰éŒ¯èª¤
+		ER_CREATE_MAPPING_FAIL, // CreateFileMapping å¤±æ•—
+		ER_ACCESS_MAPPING_FAIL, // MapViewOfFile å¤±æ•—
+		ER_SIZE_OUT_OF_RANGE,   // SendMsg lenè¶…éŽBUF_SIZE(256B)
+		ER_SIZE_NOT_ENOUGH      // RecvMsg lenä¸å¤ æŽ¥æ”¶å®Œæ•´è³‡æ–™
 	};
 
 	FileMapping() {}
@@ -70,8 +70,8 @@ public:
 		if (hMapFile == NULL) throw ER_CREATE_MAPPING_FAIL;
 		if (pBuf == NULL) throw ER_ACCESS_MAPPING_FAIL;
 		if (len > BUF_SIZE) throw ER_SIZE_OUT_OF_RANGE;
-		*(BYTE*)pBuf = len;
-		CopyMemory((BYTE*)pBuf + 1, msg, len);
+		CopyMemory((BYTE*)pBuf, &len, sizeof(short));
+		CopyMemory((BYTE*)pBuf + sizeof(short), msg, len);
 		if (isBlocking) {
 			while (*(BYTE*)pBuf) { // Block process until msg size = 0
 				Sleep(10);
@@ -92,9 +92,10 @@ public:
 			}
 		}
 		if (*(BYTE*)pBuf > len) throw ER_SIZE_NOT_ENOUGH;
-		CopyMemory(msg, (BYTE*)pBuf + 1, *(BYTE*)pBuf);
-		int get_size = *(BYTE*)pBuf;
-		*(BYTE*)pBuf = 0;
+		unsigned short get_size;
+		CopyMemory(&get_size, (BYTE*)pBuf, sizeof(short));
+		CopyMemory(msg, (BYTE*)pBuf + sizeof(short), get_size);
+		memset((BYTE*)pBuf, 0, sizeof(short));
 		return get_size;
 	}
 };
