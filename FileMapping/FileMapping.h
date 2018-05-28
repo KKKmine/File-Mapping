@@ -96,6 +96,7 @@ public:
 		CopyMemory(&get_size, (BYTE*)pBuf, sizeof(short));
 		CopyMemory(msg, (BYTE*)pBuf + sizeof(short), get_size);
 		memset((BYTE*)pBuf, 0, sizeof(short));
+		sleep(10);
 		return get_size;
 	}
 };
